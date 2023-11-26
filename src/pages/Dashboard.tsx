@@ -1,10 +1,19 @@
-import React, {FC} from 'react'
-import {IDeck} from "../types/types"
-import DeckItem from "./Home/DeckItem";
+import React, {FC, useState, useEffect} from 'react'
 import {
-    Table
+    Table,
+    Flex,
+    Button
 } from "antd"
 import {ColumnsType} from "antd/es/table/interface"
+import {
+    PlusOutlined,
+    EditTwoTone
+} from "@ant-design/icons"
+import {req} from "../utils/request"
+import {API_ENDPOINTS} from "../config/apiConfig"
+import {IDeck} from "../types/types"
+import Preloader from "../components/Preloader"
+import {useNavigate} from "react-router-dom"
 
 interface IDecksTableCell {
     type: string,
@@ -13,18 +22,21 @@ interface IDecksTableCell {
 
 interface IDecksTableRow {
     link: string,
-    number: number,
+    id: string,
     name: string,
     description: string
 }
 
 const Dashboard: FC = () => {
 
+    const navigate = useNavigate()
+
     const columns: ColumnsType<IDecksTableRow> = [
         {
             title: 'Number',
             key: 'number',
-            dataIndex: 'number'
+            dataIndex: 'id',
+            render: (text, record, index) => index + 1
         },
         {
             title: 'Name',
@@ -36,35 +48,74 @@ const Dashboard: FC = () => {
             key: 'desc',
             dataIndex: 'description'
         },
-    ]
-
-    const content: IDecksTableRow[] = [
         {
-            link: '',
-            number: 1,
-            name: 'Colours',
-            description: 'Basic colours in Russian'
-        },
-        {
-            link: '',
-            number: 2,
-            name: 'Locations',
-            description: 'Basic locations in Russian'
-        },
-        {
-            link: '',
-            number: 3,
-            name: 'Family members',
-            description: 'Common family members in Russian'
+            title: 'Action',
+            dataIndex: '',
+            key: 'x',
+            render: () => <Flex justify={'end'}>
+                <Button icon={<EditTwoTone/>} type={"dashed"} />
+            </Flex>,
         }
     ]
 
+    const [loading, setLoading] = useState<Boolean>(true)
+    const [decks, setDecks] = useState<IDecksTableRow[]>([])
+
+    const getDecks = () :void => {
+        setLoading(true)
+        req.get<IDeck[]>(API_ENDPOINTS.decks).then(response => {
+            setDecks(response.data.map(item => {
+                return {
+                    ...item,
+                    link: ''
+                }
+            }))
+        }).finally(() => {
+            setLoading(false)
+        })
+    }
+
+    useEffect(() => {
+        getDecks()
+    }, [])
+
     return (
-        <div style={{marginTop: '50px'}}>
-            <Table
-                columns={columns}
-                dataSource={content}
-            />
+        <div
+            style={{
+                position: 'relative',
+                minHeight: '300px'
+            }}
+        >
+            {
+                loading ? (
+                    <Preloader text={'Loading decks...'}/>
+                ) : (
+                    <div>
+                        <Flex
+                            justify={'flex-end'}
+                            style={{
+                                marginBottom: '20px'
+                            }}
+                        >
+                            <Button
+                                type={'primary'}
+                                size={'large'}
+                                icon={<PlusOutlined />}
+                                onClick={() => {
+                                    navigate('/decks/add')
+                                }}
+                            >
+                                Create deck
+                            </Button>
+                        </Flex>
+                        <Table
+                            columns={columns}
+                            dataSource={decks}
+                        />
+                    </div>
+
+                )
+            }
         </div>
     )
 }

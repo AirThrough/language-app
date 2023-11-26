@@ -1,5 +1,5 @@
 export interface IDeck {
-    id: number;
+    id: string;
     name: string;
-    description?: string;
+    description: string;
 }

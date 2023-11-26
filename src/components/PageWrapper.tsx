@@ -44,7 +44,9 @@ const PageWrapper: FC<IPageWrapperProps> = (props) => {
                     height: 'calc(100vh - 112px)',
                     paddingLeft: '50px',
                     paddingRight: '50px',
-                    overflowY: 'auto'
+                    overflowY: 'auto',
+                    paddingTop: '50px',
+                    paddingBottom: '30px'
                 }}
             >
                 {children}
