@@ -2,6 +2,7 @@ import React, {FC} from 'react'
 import {BrowserRouter, Routes, Route} from "react-router-dom"
 import {routes} from "./routes"
 import PageWrapper from "../components/PageWrapper"
+import {ToastContainer} from "react-toastify"
 
 const AppRouter: FC = () => {
     return (
@@ -21,6 +22,7 @@ const AppRouter: FC = () => {
                     }
                 </Routes>
             </PageWrapper>
+            <ToastContainer />
         </BrowserRouter>
     )
 }

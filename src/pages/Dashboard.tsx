@@ -1,19 +1,25 @@
-import React, {FC, useState, useEffect} from 'react'
+import React, {FC, useState, useEffect, ReactNode} from 'react'
 import {
     Table,
     Flex,
-    Button
+    Button,
+    Modal,
+    notification
 } from "antd"
 import {ColumnsType} from "antd/es/table/interface"
 import {
     PlusOutlined,
-    EditTwoTone
+    EditOutlined,
+    DeleteOutlined,
+    BulbOutlined,
 } from "@ant-design/icons"
 import {req} from "../utils/request"
 import {API_ENDPOINTS} from "../config/apiConfig"
 import {IDeck} from "../types/types"
 import Preloader from "../components/Preloader"
 import {useNavigate} from "react-router-dom"
+import Title from "antd/es/typography/Title"
+import {toast} from "react-toastify"
 
 interface IDecksTableCell {
     type: string,
@@ -30,6 +36,44 @@ interface IDecksTableRow {
 const Dashboard: FC = () => {
 
     const navigate = useNavigate()
+    const [api, contextHolder] = notification.useNotification()
+
+    const openDeleteSuccessNotification = () => {
+        api.open({
+            message: "The deck has been deleted",
+            duration: 2
+        })
+    }
+
+    const renderActions = (id: string): ReactNode => {
+        return (
+            <Flex justify={'start'} gap={10}>
+                <Button
+                    className={'border-attention-hover'}
+                    icon={<BulbOutlined/>}
+                    type={"dashed"}
+                    style={{
+                        color: '#d19424'
+                    }}
+                />
+                <Button
+                    icon={<EditOutlined/>} type={"dashed"} />
+                <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    type={"dashed"}
+                    style={{
+                        color: '#860e0e',
+                        borderColor: '#860e0e',
+                    }}
+                    onClick={() => {
+                        setDeckToDeleteId(id)
+                        setDeleteModal(true)
+                    }}
+                />
+            </Flex>
+        )
+    }
 
     const columns: ColumnsType<IDecksTableRow> = [
         {
@@ -51,15 +95,24 @@ const Dashboard: FC = () => {
         {
             title: 'Action',
             dataIndex: '',
-            key: 'x',
-            render: () => <Flex justify={'end'}>
-                <Button icon={<EditTwoTone/>} type={"dashed"} />
-            </Flex>,
+            width: '116px',
+            render: (text, record) => renderActions(record.id)
         }
     ]
 
-    const [loading, setLoading] = useState<Boolean>(true)
+    const [loading, setLoading] = useState<boolean>(true)
     const [decks, setDecks] = useState<IDecksTableRow[]>([])
+    const [deleteModal, setDeleteModal] = useState<boolean | undefined>(false)
+    const [deckToDeleteId, setDeckToDeleteId] = useState<string>('')
+
+    const handleDeleteDeck = (): void => {
+        req.delete(`${API_ENDPOINTS.decks}/${deckToDeleteId}`).then(() => {
+            setDeleteModal(false)
+            openDeleteSuccessNotification()
+            setDecks(decks.filter(item => item.id !== deckToDeleteId))
+            setDeckToDeleteId('')
+        })
+    }
 
     const getDecks = () :void => {
         setLoading(true)
@@ -86,6 +139,7 @@ const Dashboard: FC = () => {
                 minHeight: '300px'
             }}
         >
+            {contextHolder}
             {
                 loading ? (
                     <Preloader text={'Loading decks...'}/>
@@ -112,8 +166,35 @@ const Dashboard: FC = () => {
                             columns={columns}
                             dataSource={decks}
                         />
+                        <Modal
+                            open={deleteModal}
+                            cancelButtonProps={{
+                                size: 'large',
+                                style: {
+                                    width: "calc(50% - 4px)"
+                                }
+                            }}
+                            cancelText={'Cancel'}
+                            okButtonProps={{
+                                danger: true,
+                                size: 'large',
+                                style: {
+                                    width: "calc(50% - 4px)"
+                                }
+                            }}
+                            okText={'Delete the deck'}
+                            onCancel={() => {
+                                setDeleteModal(false)
+                            }}
+                            onOk={() => {
+                                handleDeleteDeck()
+                            }}
+                        >
+                            <Title level={2}>
+                                Are you sure you want to delete this deck?
+                            </Title>
+                        </Modal>
                     </div>
-
                 )
             }
         </div>

@@ -39,3 +39,7 @@
 html .p-3 {
     padding: 30px;
 }
+
+.border-attention-hover:hover {
+    border-color: #d19424 !important;
+}

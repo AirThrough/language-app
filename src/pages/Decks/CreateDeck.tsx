@@ -6,7 +6,8 @@ import {
     Button,
     Flex,
     Space,
-    Breadcrumb
+    Breadcrumb,
+    notification
 } from "antd"
 import {
     HomeOutlined
@@ -14,7 +15,6 @@ import {
 import {useNavigate} from "react-router-dom"
 import {req} from "../../utils/request"
 import {API_ENDPOINTS} from "../../config/apiConfig"
-import {toast} from "react-toastify"
 
 const {
     Title,
@@ -25,16 +25,25 @@ const CreateDeck = () => {
 
     const navigate = useNavigate()
     const [form] = Form.useForm()
+    const [api, contextHolder] = notification.useNotification()
+
+    const openCreateDeckSuccessNotification = (): void => {
+        api.open({
+            message: "The deck has been created",
+            duration: 2
+        })
+    }
 
     const handleSubmit = (values: any) => {
         req.post(API_ENDPOINTS.decks, values).then(() => {
-            toast.success("Deck has been created!")
+            openCreateDeckSuccessNotification()
             navigate('/dashboard')
         })
     }
 
     return (
         <div>
+            {contextHolder}
             <Breadcrumb
                 separator={<Text style={{fontSize: '18px'}}>/</Text>}
                 style={{
